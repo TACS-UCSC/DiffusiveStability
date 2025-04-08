@@ -35,8 +35,8 @@ def parse_args():
 
 def load_model(model_path: str) -> MambaSeqToSeq:
     """Load model from file."""
-    with open(model_path, "rb") as f:
-        model = eqx.serialization.from_bytes(f.read())
+    # Use tree_deserialise_leaves to load the model
+    model = eqx.tree_deserialise_leaves(model_path)
     return model
 
 

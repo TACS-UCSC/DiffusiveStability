@@ -98,8 +98,8 @@ def create_data_loaders(config: Dict[str, Any]) -> Tuple[KSSequenceDataLoader, O
 
 def load_checkpoint(checkpoint_path: str) -> Tuple[MambaSeqToSeq, optax.OptState, int]:
     """Load model and optimizer state from checkpoint."""
-    with open(checkpoint_path, "rb") as f:
-        checkpoint = eqx.serialization.from_bytes(f.read())
+    # Load checkpoint using tree_deserialise_leaves
+    checkpoint = eqx.tree_deserialise_leaves(checkpoint_path)
     
     model = checkpoint["model"]
     opt_state = checkpoint["opt_state"]
@@ -124,15 +124,13 @@ def save_checkpoint(model: MambaSeqToSeq, opt_state: optax.OptState, step: int,
         "config": config
     }
     
-    # Save checkpoint
+    # Use eqx.tree_serialise_leaves for checkpointing
     checkpoint_path = os.path.join(checkpoints_dir, f"checkpoint_{step}.eqx")
-    with open(checkpoint_path, "wb") as f:
-        f.write(eqx.serialization.to_bytes(checkpoint))
+    eqx.tree_serialise_leaves(checkpoint_path, checkpoint)
     
     # Also save the latest model separately
     model_path = os.path.join(output_dir, "model.eqx")
-    with open(model_path, "wb") as f:
-        f.write(eqx.serialization.to_bytes(model))
+    eqx.tree_serialise_leaves(model_path, model)
     
     # Save config for easy model recreation
     config_path = os.path.join(output_dir, "model_config.json")
