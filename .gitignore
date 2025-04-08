@@ -30,3 +30,5 @@ results/
 dist/
 build/
 *.egg-info/
+# Exclude Zone.Identifier files
+*.py:Zone.Identifier

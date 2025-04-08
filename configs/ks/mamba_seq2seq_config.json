@@ -1,0 +1,32 @@
+{
+  "experiment_name": "mamba_seq2seq_denoising",
+  "model_type": "mamba_seq2seq",
+  
+  "train_dataset": "data/ks/NoisyDataset.pkl",
+  "val_dataset": "data/ks/NoisyDataset.pkl",
+  
+  "batch_size": 1,
+  "num_epochs": 100,
+  "learning_rate": 0.0003,
+  "weight_decay": 1e-5,
+  "beta1": 0.9,
+  "beta2": 0.999,
+  "epsilon": 1e-8,
+  
+  "seq_len": 50,
+  "dt": 100,
+  
+  "spatial_dim": 1024,
+  "hidden_dim": 64,
+  "n_layers": 2,
+  "state_dim": 16,
+  "kernel_size": 2,
+  "expand": 2,
+  "dt_rank": "auto",
+  
+  "checkpoint_freq": 10,
+  "eval_freq": 1,
+  
+  "seed": 42,
+  "data_seed": 43
+}
