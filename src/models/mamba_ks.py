@@ -111,11 +111,11 @@ class SimpleMambaBlock(eqx.Module):
         x_gate, x_proj = jnp.split(x_proj, 2, axis=-1)  # Each (seq_len, expanded_dim)
         
         # Apply convolution for local context
-        # Reshape to (1, expanded_dim, seq_len) for conv1d
+        # Use the correct shape for equinox's Conv1d which expects (channels, seq_len)
         seq_len = x_proj.shape[0]
-        x_conv = x_proj.T[None, ...]  # (1, expanded_dim, seq_len)
-        x_conv = self.conv1d(x_conv)  # (1, expanded_dim, seq_len)
-        x_conv = x_conv[0].T  # (seq_len, expanded_dim)
+        x_conv = x_proj.T  # (expanded_dim, seq_len)
+        x_conv = self.conv1d(x_conv)  # (expanded_dim, seq_len)
+        x_conv = x_conv.T  # (seq_len, expanded_dim)
         
         # Apply SiLU activation
         x_conv = jax.nn.silu(x_conv)

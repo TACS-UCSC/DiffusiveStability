@@ -79,7 +79,7 @@ def load_checkpoint(checkpoint_path, model, opt_state):
     return loaded_model, loaded_opt_state, step
 
 
-@partial(jax.jit, static_argnums=(3,))
+@eqx.filter_jit
 def compute_loss(model, inputs, targets, loss_type="mse"):
     """Compute loss function for training."""
     predictions = jax.vmap(model)(inputs)
@@ -96,7 +96,7 @@ def compute_loss(model, inputs, targets, loss_type="mse"):
     return loss
 
 
-@partial(jax.jit, static_argnums=(3,))
+@eqx.filter_jit
 def train_step(model, opt_state, batch, loss_type="mse"):
     """Perform a single training step."""
     inputs, targets = batch
@@ -105,8 +105,9 @@ def train_step(model, opt_state, batch, loss_type="mse"):
     def loss_fn(model):
         return compute_loss(model, inputs, targets, loss_type)
     
-    # Compute loss and gradients
-    loss, grads = jax.value_and_grad(loss_fn)(model)
+    # Compute loss and gradients with equinox's filter_value_and_grad
+    # This automatically handles integer parameters
+    loss, grads = eqx.filter_value_and_grad(loss_fn)(model)
     
     # Update parameters
     updates, new_opt_state = optax.apply_updates(opt_state, grads)
@@ -133,6 +134,11 @@ def save_checkpoint(model, opt_state, step, save_dir):
     return checkpoint_path
 
 
+@eqx.filter_jit
+def evaluate_batch(model, inputs, targets, loss_type="mse"):
+    """Evaluate model on a single batch."""
+    return compute_loss(model, inputs, targets, loss_type)
+
 def evaluate(model, dataloader, loss_type="mse"):
     """Evaluate model on validation set."""
     total_loss = 0.0
@@ -140,7 +146,7 @@ def evaluate(model, dataloader, loss_type="mse"):
     
     for batch in dataloader:
         inputs, targets = batch
-        loss = compute_loss(model, inputs, targets, loss_type)
+        loss = evaluate_batch(model, inputs, targets, loss_type)
         total_loss += loss
         num_batches += 1
     
